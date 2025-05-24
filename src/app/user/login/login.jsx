@@ -2,14 +2,41 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Container, TextField, Typography } from '@mui/material'
 import Link from 'next/link'
+import { useRouter } from "next/navigation"; // new one
 import React from 'react'
 
 function Login() {
+    const [email, setEmail] = React.useState("");
+    const [password, setPassword] = React.useState("");
+    const formData = { email, password };
+    const router = useRouter();
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const url = "/api/user/login"; // ✅ assuming the file is: app/api/user/login/route.js
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                
+                setTimeout(() => {
+                    router.push("/user/dashboard");
+                }, 2000);
+            }
+        } catch (error) {
+            console.log("Error during login:", error);
+        }
+
+    }
+
     return (
         <Container style={{ width: '350px' }}>
-
-
-
             <Box
                 sx={{
                     display: 'flex',
@@ -35,6 +62,8 @@ function Login() {
                     margin="normal"
                     fullWidth
                     label="Email or Phone"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <TextField
                     variant="outlined"
@@ -42,11 +71,14 @@ function Login() {
                     fullWidth
                     label="Password"
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
-                <Link href="#" style={{ alignSelf: 'flex-start', marginTop: '10px', textDecoration:'none', fontWeight:'300' }}>
+                <Link href="#" style={{ alignSelf: 'flex-start', marginTop: '10px', textDecoration: 'none', fontWeight: '300' }}>
                     Forgot Password
                 </Link>
-                <Button variant='contained' sx={{ marginTop: '15px', borderRadius: '12px' }} fullWidth>
+                <Button variant='contained' sx={{ marginTop: '15px', borderRadius: '12px' }} fullWidth
+                onClick={handleLogin}>
                     Login
                 </Button>
                 <Typography variant='body2' sx={{ margin: '15px 0' }}>

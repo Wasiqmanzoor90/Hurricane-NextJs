@@ -4,6 +4,7 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 import { connectDb } from "../../../../../config/connectDb";
 import { User } from "../../../../../model/userModel";
+import { resHandler } from "../../../../../utils/messageHandler";
 
 export async function POST(req) {
   try {
@@ -13,12 +14,12 @@ export async function POST(req) {
     const { username, email, password } = body;
 
     if (!username || !email || !password) {
-      return Response.json({ message: "Please fill all fields" }, { status: 400 });
+      return resHandler( 400, "Please fill all fields");
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return Response.json({ message: "User already exists" }, { status: 400 });
+      return resHandler( 400, "User already exists with this email");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -46,6 +47,6 @@ export async function POST(req) {
     return response;
   } catch (error) {
     console.error("Registration error:", error);
-    return Response.json({ message: "Server Error" }, { status: 500 });
+  return resHandler(500, "Server Error! Please try again later.");
   }
 }
