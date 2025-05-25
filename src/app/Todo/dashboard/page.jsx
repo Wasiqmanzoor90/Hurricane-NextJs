@@ -1,66 +1,97 @@
 "use client";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Divider,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography, Paper, Divider } from "@mui/material";
 
 function Page() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(null); // store userId in state
+  const [error, setError] = useState(null);
+  const [userId, setUserId] = useState("");
 
-  // Load userId from localStorage on client
   useEffect(() => {
     const id = localStorage.getItem("userId");
-    if (id) {
-      setUserId(id);
-    } else {
-      console.warn("No userId found in localStorage.");
-      setLoading(false);
-    }
+    if (id) setUserId(id);
+    else setLoading(false);
   }, []);
 
-  // Fetch todos only after userId is available
   useEffect(() => {
     const fetchTodos = async () => {
       try {
         const res = await fetch(`/api/todo/getTodo?userId=${userId}`);
         const data = await res.json();
-        console.log("Fetched todos:", data);
         setTodos(data);
       } catch (error) {
         console.error("Error fetching todos:", error);
+        setError("Failed to load todos.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchTodos();
-    }
+    if (userId) fetchTodos();
   }, [userId]);
 
-  // Handle new todo creation
   const createTodo = async (e) => {
     e.preventDefault();
-    if (!userId) {
-      console.error("User ID not found.");
-      return;
-    }
+    if (!userId) return;
 
     try {
-      const formData = { title, description, user: userId, completed: false };
+      const formData = {
+        title,
+        description,
+        user: userId,
+        completed: false,
+      };
+
       const res = await fetch("/api/todo/todoCreate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+
       const data = await res.json();
       setTitle("");
       setDescription("");
-      setTodos((prev) => [...prev, data]); // Add new todo without refetch
+      setTodos((prev) => [...prev, data]);
     } catch (error) {
       console.error("Error creating todo:", error);
+    }
+  };
+
+  const toggleComplete = async (id, newStatus) => {
+    try {
+      const res = await fetch(`/api/todo/updateTodo?id=${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ completed: newStatus }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update todo");
+
+      const updatedRes = await res.json();
+      console.log("Response from updateTodo API:", updatedRes);
+
+      // Because backend returns { status, message, data }, we pick updatedTodo from data
+      const updatedTodo = updatedRes.data;
+
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo._id === id ? { ...todo, completed: updatedTodo.completed } : todo
+        )
+      );
+    } catch (err) {
+      console.error("Error updating todo:", err);
     }
   };
 
@@ -85,7 +116,10 @@ function Page() {
           bgcolor: "#ffffff",
         }}
       >
-        <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}>
+        <Typography
+          variant="h5"
+          sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}
+        >
           Create a Todo
         </Typography>
 
@@ -133,11 +167,30 @@ function Page() {
         ) : (
           <Box component="ul" sx={{ pl: 2 }}>
             {todos.map((todo) => (
-              <li key={todo._id}>
-                <strong>{todo.title}</strong>: {todo.description} -{" "}
-                <span style={{ color: todo.completed ? "green" : "red" }}>
-                  {todo.completed ? "Completed" : "Incomplete"}
-                </span>
+              <li
+                key={todo?._id}
+                style={{
+                  marginBottom: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!todo?.completed}
+                  onChange={() => {
+                    if (todo?._id && typeof todo.completed === "boolean") {
+                      toggleComplete(todo._id, !todo.completed);
+                    }
+                  }}
+                  style={{ marginRight: "10px" }}
+                />
+                <div>
+                  <strong>{todo?.title}</strong>: {todo?.description} -{" "}
+                  <span style={{ color: todo?.completed ? "green" : "red" }}>
+                    {todo?.completed ? "Completed" : "Incomplete"}
+                  </span>
+                </div>
               </li>
             ))}
           </Box>
