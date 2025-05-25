@@ -1,33 +1,150 @@
 "use client";
-import React, { useEffect } from 'react'
-import isAuthorised from '../../../../utils/isAuthorised'
-import { useRouter } from 'next/navigation';
-import LoadingPage from '@/component/loading/page';
+import React, { useEffect, useState } from "react";
+import { Box, Button, TextField, Typography, Paper, Divider } from "@mui/material";
 
+function Page() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null); // store userId in state
 
-function page() {
-  const [loading, setLoading] = React.useState(true);
-  const router = useRouter();
+  // Load userId from localStorage on client
   useEffect(() => {
-    (async () => {
-      const verify = await isAuthorised();
-      if (!verify) {
-        router.push("/");
-      } else {
-        setLoading(false);
-      }
-    })();
+    const id = localStorage.getItem("userId");
+    if (id) {
+      setUserId(id);
+    } else {
+      console.warn("No userId found in localStorage.");
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return <LoadingPage />
-  }
+  // Fetch todos only after userId is available
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const res = await fetch(`/api/todo/getTodo?userId=${userId}`);
+        const data = await res.json();
+        console.log("Fetched todos:", data);
+        setTodos(data);
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchTodos();
+    }
+  }, [userId]);
+
+  // Handle new todo creation
+  const createTodo = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      console.error("User ID not found.");
+      return;
+    }
+
+    try {
+      const formData = { title, description, user: userId, completed: false };
+      const res = await fetch("/api/todo/todoCreate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      setTitle("");
+      setDescription("");
+      setTodos((prev) => [...prev, data]); // Add new todo without refetch
+    } catch (error) {
+      console.error("Error creating todo:", error);
+    }
+  };
+
   return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#f0f2f5",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 2,
+      }}
+    >
+      <Paper
+        elevation={4}
+        sx={{
+          width: "100%",
+          maxWidth: 600,
+          p: 4,
+          borderRadius: 3,
+          bgcolor: "#ffffff",
+        }}
+      >
+        <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}>
+          Create a Todo
+        </Typography>
 
-    <div>
+        <Box component="form" onSubmit={createTodo}>
+          <TextField
+            fullWidth
+            label="Title"
+            variant="outlined"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ mb: 2 }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            variant="outlined"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            multiline
+            rows={3}
+            sx={{ mb: 2 }}
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ py: 1, fontWeight: "bold", borderRadius: 2 }}
+          >
+            Submit
+          </Button>
+        </Box>
 
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Commodi atque nobis ea dicta perferendis maxime incidunt dolorem ipsa. Eveniet laboriosam necessitatibus voluptatem blanditiis voluptas adipisci inventore natus. Non, expedita laborum explicabo cum praesentium repudiandae veritatis facilis aliquid numquam tempore deserunt veniam dignissimos suscipit illum quam. Mollitia, ullam rem inventore corporis neque cumque aspernatur pariatur vel ab molestias assumenda officiis sunt sequi accusantium perferendis iste ratione incidunt tempora. Placeat porro asperiores veniam quam aspernatur nam veritatis sapiente! Eveniet quisquam delectus est totam quibusdam ratione saepe incidunt ex similique quam placeat, non dolorum deserunt consequatur suscipit! Dolor aliquid distinctio molestias. Repellat, accusantium?</div>
-  )
+        <Divider sx={{ my: 4 }} />
+
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+          Your Todos
+        </Typography>
+
+        {loading ? (
+          <Typography>Loading...</Typography>
+        ) : todos.length === 0 ? (
+          <Typography>No todos found.</Typography>
+        ) : (
+          <Box component="ul" sx={{ pl: 2 }}>
+            {todos.map((todo) => (
+              <li key={todo._id}>
+                <strong>{todo.title}</strong>: {todo.description} -{" "}
+                <span style={{ color: todo.completed ? "green" : "red" }}>
+                  {todo.completed ? "Completed" : "Incomplete"}
+                </span>
+              </li>
+            ))}
+          </Box>
+        )}
+      </Paper>
+    </Box>
+  );
 }
 
-export default page
+export default Page;
