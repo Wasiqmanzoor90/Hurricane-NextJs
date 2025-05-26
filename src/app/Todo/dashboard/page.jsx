@@ -6,7 +6,10 @@ import {
   Typography,
   Paper,
   Divider,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
+
 import React, { useEffect, useState } from "react";
 
 function Page() {
@@ -94,6 +97,24 @@ function Page() {
       console.error("Error updating todo:", err);
     }
   };
+
+
+  const removeTodo = async (id) => {
+    try {
+      const res = await fetch(`/api/todo/deleteTodo?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.log("Error deleting todo:", data.message);
+        return;
+      }
+      console.log("Todo deleted successfully:", data.message);
+      setTodos((prevTodos) =>prevTodos.filter(todo => todo._id !== id));
+    } catch (error) {
+      console.error("An error occurred while deleting the todo:", error);
+    }
+  }
 
   return (
     <Box
@@ -190,6 +211,13 @@ function Page() {
                   <span style={{ color: todo?.completed ? "green" : "red" }}>
                     {todo?.completed ? "Completed" : "Incomplete"}
                   </span>
+                  <IconButton
+                     aria-label="delete"
+                     color="error"
+                     onClick={() => removeTodo(todo._id)} // or todo.id depending on your model
+                   >
+<DeleteIcon/>
+                  </IconButton>
                 </div>
               </li>
             ))}
