@@ -1,4 +1,6 @@
 "use client";
+
+import React, { useEffect, useState } from "react";
 import {
   Box,
   TextField,
@@ -10,41 +12,49 @@ import {
   Tooltip,
 } from "@mui/material";
 import NavbarComponent from "@/component/navbar/page";
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-
-import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import isAuthorised from "../../../../utils/isAuthorised";
+import LoadingPage from "@/component/loading/page";
 
 function Page() {
+  // Local state declarations - ALL HOOKS MUST BE DECLARED FIRST
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState("");
-  const name = localStorage.getItem("name") || "User";
+  const [name, setName] = useState("User");
 
+  const [loadingTodos, setLoadingTodos] = useState(true); // Fixed typo: loaingtodos -> loadingTodos
 
+  const router = useRouter();
 
-
-
-
-
-
-
-
-
-
-
-  
-
+  // Authorization check effect
   useEffect(() => {
-    const id = localStorage.getItem("userId");
-    if (id) setUserId(id);
-    else setLoading(false);
+    (async () => {
+      const verify = await isAuthorised();
+      if (!verify) {
+        router.push("/");
+      } else {
+        setLoadingTodos(false);
+      }
+    })();
   }, []);
 
+  // Load userId and name from localStorage on initial mount
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    const storedName = localStorage.getItem("name");
+    if (id) setUserId(id);
+    if (storedName) setName(storedName);
+    if (!id) setLoading(false); // Avoid loading if user ID is missing
+  }, []);
+
+  // Fetch todos once userId is available
   useEffect(() => {
     const fetchTodos = async () => {
       try {
@@ -62,9 +72,19 @@ function Page() {
     if (userId) fetchTodos();
   }, [userId]);
 
+  // CONDITIONAL RENDERING AFTER ALL HOOKS
+  if (loadingTodos) {
+    return <LoadingPage />;
+  }
+
+  // Create a new todo
   const createTodo = async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    console.log("Submitting Todo..."); // ✅ Add this line
+    if (!userId) {
+      console.warn("🚫 No userId found. Aborting createTodo.");
+      return;
+    }
 
     try {
       const formData = {
@@ -89,6 +109,7 @@ function Page() {
     }
   };
 
+  // Toggle the completion status of a todo
   const toggleComplete = async (id, newStatus) => {
     try {
       const res = await fetch(`/api/todo/updateTodo?id=${id}`, {
@@ -102,9 +123,6 @@ function Page() {
       if (!res.ok) throw new Error("Failed to update todo");
 
       const updatedRes = await res.json();
-      console.log("Response from updateTodo API:", updatedRes);
-
-      // Because backend returns { status, message, data }, we pick updatedTodo from data
       const updatedTodo = updatedRes.data;
 
       setTodos((prevTodos) =>
@@ -117,7 +135,7 @@ function Page() {
     }
   };
 
-
+  // Delete a todo
   const removeTodo = async (id) => {
     try {
       const res = await fetch(`/api/todo/deleteTodo?id=${id}`, {
@@ -129,22 +147,20 @@ function Page() {
         return;
       }
       console.log("Todo deleted successfully:", data.message);
-      setTodos((prevTodos) => prevTodos.filter(todo => todo._id !== id));
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo._id !== id));
     } catch (error) {
       console.error("An error occurred while deleting the todo:", error);
     }
-  }
+  };
 
   return (
     <>
       <NavbarComponent />
-      <Typography variant="h4"
-        sx={{ mt: 2, mb: 3, fontWeight: "bold" }}
-      >
+      <Typography variant="h4" sx={{ mt: 2, mb: 3, fontWeight: "bold" }}>
         Welcome {name}!
       </Typography>
-      <Box
 
+      <Box
         sx={{
           minHeight: "60vh",
           bgcolor: "white",
@@ -154,8 +170,6 @@ function Page() {
           p: 2,
         }}
       >
-
-
         <Paper
           elevation={4}
           sx={{
@@ -163,16 +177,9 @@ function Page() {
             maxWidth: 350,
             p: 3,
             borderRadius: 3,
-
           }}
         >
-          {/* <Typography
-            variant="h5"
-            sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}
-          >
-            Create a Todo
-          </Typography> */}
-
+          {/* Todo Creation Form */}
           <Box component="form" onSubmit={createTodo}>
             <TextField
               fullWidth
@@ -206,6 +213,7 @@ function Page() {
 
           <Divider sx={{ my: 4 }} />
 
+          {/* Todo List */}
           <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
             Your Todos
           </Typography>
@@ -215,10 +223,6 @@ function Page() {
           ) : todos.length === 0 ? (
             <Typography>No todos found.</Typography>
           ) : (
-
-
-
-            //show 
             <Box component="ul" sx={{ pl: 0, listStyle: "none", m: 0 }}>
               {todos.map((todo) => (
                 <li
@@ -240,20 +244,24 @@ function Page() {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", flex: 1 }}>
-                      <Tooltip title={todo.completed ? "Mark as Incomplete" : "Mark as Complete"}>
+                      <Tooltip
+                        title={todo.completed ? "Mark as Incomplete" : "Mark as Complete"}
+                      >
                         <IconButton
-                          onClick={() => {
-                            if (todo?._id && typeof todo.completed === "boolean") {
-                              toggleComplete(todo._id, !todo.completed);
-                            }
-                          }}
+                          onClick={() =>
+                            toggleComplete(todo._id, !todo.completed)
+                          }
                           sx={{
                             color: todo.completed ? "green" : "gray",
                             mt: "4px",
                             mr: "10px",
                           }}
                         >
-                          {todo.completed ? <CheckCircleOutlineIcon /> : <RadioButtonUncheckedIcon />}
+                          {todo.completed ? (
+                            <CheckCircleOutlineIcon />
+                          ) : (
+                            <RadioButtonUncheckedIcon />
+                          )}
                         </IconButton>
                       </Tooltip>
 
@@ -265,24 +273,25 @@ function Page() {
                             textDecoration: todo.completed ? "line-through" : "none",
                           }}
                         >
-                          {todo?.title}
+                          {todo.title}
                         </Typography>
                         <Typography sx={{ color: "#555", fontSize: "0.9rem" }}>
-                          {todo?.description}
+                          {todo.description}
                         </Typography>
                         <Typography
                           sx={{
-                            color: todo?.completed ? "#4caf50" : "#f44336",
+                            color: todo.completed ? "#4caf50" : "#f44336",
                             fontSize: "0.85rem",
                             fontWeight: 500,
                             mt: 0.5,
                           }}
                         >
-                          {todo?.completed ? "Completed" : "Incomplete"}
+                          {todo.completed ? "Completed" : "Incomplete"}
                         </Typography>
                       </div>
                     </div>
 
+                    {/* Delete Button */}
                     <div style={{ textAlign: "right" }}>
                       <IconButton
                         aria-label="delete"
@@ -295,7 +304,7 @@ function Page() {
                         variant="caption"
                         sx={{ display: "block", fontSize: "0.75rem", color: "#888" }}
                       >
-                        {new Date(todo?.createdAt).toLocaleDateString()}
+                        {new Date(todo.createdAt).toLocaleDateString()}
                       </Typography>
                     </div>
                   </div>

@@ -12,7 +12,7 @@ export async function POST(req) {
     const { email, password } = body;
 
     if (!email || !password) {
-    return resHandler(400, "Email and password are required");
+      return resHandler(400, "Email and password are required");
     }
 
     const existUser = await User.findOne({ email });
@@ -22,7 +22,7 @@ export async function POST(req) {
 
     const checkPass = await bcrypt.compare(password, existUser.password);
     if (!checkPass) {
-    return resHandler(400, "Incorrect password! Please try again.");
+      return resHandler(400, "Incorrect password! Please try again.");
     }
 
     // Password correct, create token
@@ -34,7 +34,12 @@ export async function POST(req) {
     const expire = new Date(Date.now() + 48 * 60 * 60 * 1000).toUTCString();
 
     return new Response(
-      JSON.stringify({ message: "User Login Successfully!", token }),
+      JSON.stringify({
+        message: "User Login Successfully!", token, user: {
+          _id: existUser._id,
+          username: existUser.username,
+        },
+      }),
       {
         status: 201,
         headers: {
@@ -45,6 +50,6 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error(error);
-  return resHandler(500, "Server Error! Please try again later.");
+    return resHandler(500, "Server Error! Please try again later.");
   }
 }

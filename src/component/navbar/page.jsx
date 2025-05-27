@@ -1,28 +1,28 @@
 import { AppBar, Box, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
 import MenuIcon from "@mui/icons-material/Menu";
-import { useRouter } from "next/navigation";
-import isAuthorised from '../../../utils/isAuthorised';
-import LoadingPage from '../loading/page';
+// import { useRouter } from "next/navigation";
+// import isAuthorised from '../../../utils/isAuthorised';
+// import LoadingPage from '../loading/page';
 function NavbarComponent() {
     const [anchorel, setAnchorel] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-    const router = useRouter();
+    // const [loading, setLoading] = React.useState(true);
+    // const router = useRouter();
 
-    useEffect(() => {
-        (async () => {
-            const verify = isAuthorised();
-            if (!verify) {
-                router.push("/");
-            }
-            else {
-                setLoading(false);
-            }
-        })();
-    }, [])
-    if (loading) {
-        return <LoadingPage />
-    }
+    // useEffect(() => {
+    //     (async () => {
+    //         const verify = isAuthorised();
+    //         if (!verify) {
+    //             router.push("/");
+    //         }
+    //         else {
+    //             setLoading(false);
+    //         }
+    //     })();
+    // }, [])
+    // if (loading) {
+    //     return <LoadingPage />
+    // }
     const handleOpen = (event) => {
         setAnchorel(event.currentTarget);
     }

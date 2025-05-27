@@ -24,7 +24,9 @@ function Login() {
             });
             const data = await res.json();
             if (res.ok) {
-
+                localStorage.setItem("userId", data.user._id);
+                localStorage.setItem("name", data.user.username);
+               
                 setTimeout(() => {
                     router.push("/Todo/dashboard");
                 }, 2000);
