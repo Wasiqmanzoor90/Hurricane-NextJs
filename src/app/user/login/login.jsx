@@ -24,9 +24,9 @@ function Login() {
             });
             const data = await res.json();
             if (res.ok) {
-                
+
                 setTimeout(() => {
-                    router.push("/user/dashboard");
+                    router.push("/Todo/dashboard");
                 }, 2000);
             }
         } catch (error) {
@@ -78,7 +78,7 @@ function Login() {
                     Forgot Password
                 </Link>
                 <Button variant='contained' sx={{ marginTop: '15px', borderRadius: '12px' }} fullWidth
-                onClick={handleLogin}>
+                    onClick={handleLogin}>
                     Login
                 </Button>
                 <Typography variant='body2' sx={{ margin: '15px 0' }}>
@@ -100,6 +100,7 @@ function Login() {
                     Sign in with GitHub
                 </Button>
 
+                <Link href='/user/register' style={{ textDecoration: 'none', padding: '3px' }}>Register here</Link>
             </Box>
 
 

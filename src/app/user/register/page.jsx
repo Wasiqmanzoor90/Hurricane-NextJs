@@ -109,7 +109,7 @@ function Signup() {
                 Sign up
                 </Button>
 
-                <Link href='/' style={{ textDecoration: 'none', marginTop: '10px' }}>
+                <Link href='/' style={{ textDecoration: 'none',marginTop:'8px', padding:'5px'}}>
                 Already have an account?
 
                 </Link>

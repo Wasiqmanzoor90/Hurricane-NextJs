@@ -7,8 +7,12 @@ import {
   Paper,
   Divider,
   IconButton,
+  Tooltip,
 } from "@mui/material";
+import NavbarComponent from "@/component/navbar/page";
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 import React, { useEffect, useState } from "react";
 
@@ -19,6 +23,21 @@ function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState("");
+  const name = localStorage.getItem("name") || "User";
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -110,121 +129,183 @@ function Page() {
         return;
       }
       console.log("Todo deleted successfully:", data.message);
-      setTodos((prevTodos) =>prevTodos.filter(todo => todo._id !== id));
+      setTodos((prevTodos) => prevTodos.filter(todo => todo._id !== id));
     } catch (error) {
       console.error("An error occurred while deleting the todo:", error);
     }
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#f0f2f5",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        p: 2,
-      }}
-    >
-      <Paper
-        elevation={4}
+    <>
+      <NavbarComponent />
+      <Typography variant="h4"
+        sx={{ mt: 2, mb: 3, fontWeight: "bold" }}
+      >
+        Welcome {name}!
+      </Typography>
+      <Box
+
         sx={{
-          width: "100%",
-          maxWidth: 600,
-          p: 4,
-          borderRadius: 3,
-          bgcolor: "#ffffff",
+          minHeight: "60vh",
+          bgcolor: "white",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 2,
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}
+
+
+        <Paper
+          elevation={4}
+          sx={{
+            width: "100%",
+            maxWidth: 350,
+            p: 3,
+            borderRadius: 3,
+
+          }}
         >
-          Create a Todo
-        </Typography>
-
-        <Box component="form" onSubmit={createTodo}>
-          <TextField
-            fullWidth
-            label="Title"
-            variant="outlined"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            sx={{ mb: 2 }}
-            required
-          />
-          <TextField
-            fullWidth
-            label="Description"
-            variant="outlined"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            rows={3}
-            sx={{ mb: 2 }}
-            required
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ py: 1, fontWeight: "bold", borderRadius: 2 }}
+          {/* <Typography
+            variant="h5"
+            sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}
           >
-            Submit
-          </Button>
-        </Box>
+            Create a Todo
+          </Typography> */}
 
-        <Divider sx={{ my: 4 }} />
-
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-          Your Todos
-        </Typography>
-
-        {loading ? (
-          <Typography>Loading...</Typography>
-        ) : todos.length === 0 ? (
-          <Typography>No todos found.</Typography>
-        ) : (
-          <Box component="ul" sx={{ pl: 2 }}>
-            {todos.map((todo) => (
-              <li
-                key={todo?._id}
-                style={{
-                  marginBottom: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!todo?.completed}
-                  onChange={() => {
-                    if (todo?._id && typeof todo.completed === "boolean") {
-                      toggleComplete(todo._id, !todo.completed);
-                    }
-                  }}
-                  style={{ marginRight: "10px" }}
-                />
-                <div>
-                  <strong>{todo?.title}</strong>: {todo?.description} -{" "}
-                  <span style={{ color: todo?.completed ? "green" : "red" }}>
-                    {todo?.completed ? "Completed" : "Incomplete"}
-                  </span>
-                  <IconButton
-                     aria-label="delete"
-                     color="error"
-                     onClick={() => removeTodo(todo._id)} // or todo.id depending on your model
-                   >
-<DeleteIcon/>
-                  </IconButton>
-                </div>
-              </li>
-            ))}
+          <Box component="form" onSubmit={createTodo}>
+            <TextField
+              fullWidth
+              label="Title"
+              variant="outlined"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              sx={{ mb: 2 }}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Description"
+              variant="outlined"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              multiline
+              rows={3}
+              sx={{ mb: 2 }}
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ py: 1, fontWeight: "bold", borderRadius: 2 }}
+            >
+              Submit
+            </Button>
           </Box>
-        )}
-      </Paper>
-    </Box>
+
+          <Divider sx={{ my: 4 }} />
+
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+            Your Todos
+          </Typography>
+
+          {loading ? (
+            <Typography>Loading...</Typography>
+          ) : todos.length === 0 ? (
+            <Typography>No todos found.</Typography>
+          ) : (
+
+
+
+            //show 
+            <Box component="ul" sx={{ pl: 0, listStyle: "none", m: 0 }}>
+              {todos.map((todo) => (
+                <li
+                  key={todo?._id}
+                  style={{
+                    marginBottom: "10px",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    backgroundColor: "#f9f9f9",
+                    borderLeft: `6px solid ${todo.completed ? "#4caf50" : "#f44336"}`,
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", flex: 1 }}>
+                      <Tooltip title={todo.completed ? "Mark as Incomplete" : "Mark as Complete"}>
+                        <IconButton
+                          onClick={() => {
+                            if (todo?._id && typeof todo.completed === "boolean") {
+                              toggleComplete(todo._id, !todo.completed);
+                            }
+                          }}
+                          sx={{
+                            color: todo.completed ? "green" : "gray",
+                            mt: "4px",
+                            mr: "10px",
+                          }}
+                        >
+                          {todo.completed ? <CheckCircleOutlineIcon /> : <RadioButtonUncheckedIcon />}
+                        </IconButton>
+                      </Tooltip>
+
+                      <div>
+                        <Typography
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "1rem",
+                            textDecoration: todo.completed ? "line-through" : "none",
+                          }}
+                        >
+                          {todo?.title}
+                        </Typography>
+                        <Typography sx={{ color: "#555", fontSize: "0.9rem" }}>
+                          {todo?.description}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            color: todo?.completed ? "#4caf50" : "#f44336",
+                            fontSize: "0.85rem",
+                            fontWeight: 500,
+                            mt: 0.5,
+                          }}
+                        >
+                          {todo?.completed ? "Completed" : "Incomplete"}
+                        </Typography>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <IconButton
+                        aria-label="delete"
+                        color="error"
+                        onClick={() => removeTodo(todo._id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                      <Typography
+                        variant="caption"
+                        sx={{ display: "block", fontSize: "0.75rem", color: "#888" }}
+                      >
+                        {new Date(todo?.createdAt).toLocaleDateString()}
+                      </Typography>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </Box>
+          )}
+        </Paper>
+      </Box>
+    </>
   );
 }
 
