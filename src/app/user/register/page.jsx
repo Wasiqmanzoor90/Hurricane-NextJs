@@ -1,125 +1,187 @@
 'use client'
 
-import { Box, Button, Container, TextField, Typography } from '@mui/material'
-import Link from 'next/link'
-// // import { useRouter } from "next/router";  // page router
-import { useRouter } from "next/navigation"; // new one
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import {
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+  InputAdornment,
+  IconButton,
+  CircularProgress,
+  Alert,
+  Fade,
+} from '@mui/material';
+import Link from 'next/link';
+import { useRouter } from "next/navigation";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
+function register() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
 
-function Signup() {
+  const formData = { username, email, password };
+  const router = useRouter();
 
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const formData = { username, email, password };
+  const handleregister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setAlert({ open: false, message: "", severity: "info" });
 
-    const router = useRouter();
+    try {
+      const url = "/api/user/register";
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
 
-    const handleregister = async (e) => {
-
-        e.preventDefault();
-        try {
-            const url = "/api/user/register";
-           
-            const res = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            });
-            const data = await res.json();
-
-            if (res.ok) {
-                
-                setTimeout(() => {
-                    router.push("/user/dashboard");
-                  }, 2000); // ✅ correct
-                  
-            } else {
-                console.log("Error:", data.message);
-            }
-
-        } catch (error) {
-            console.log("Error during registration:", error);
-        }
+      if (res.ok) {
+        setAlert({ open: true, message: "Registration successful! Redirecting...", severity: "success" });
+        setTimeout(() => {
+          router.push("/user/dashboard");
+        }, 1200);
+      } else {
+        setAlert({ open: true, message: data.message || "Registration failed.", severity: "error" });
+      }
+    } catch (error) {
+      setAlert({ open: true, message: "Error during registration. Please try again.", severity: "error" });
+    } finally {
+      setLoading(false);
     }
-    return (
-        <Container style={{ width: '350px' }}>
+  };
 
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
+  return (
+    <Container
+      maxWidth="sm"
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Box
+        component="form"
+        onSubmit={handleregister}
+        sx={{
+          width: { xs: '100%', sm: 400 },
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          p: 4,
+          background: 'rgba(255,255,255,0.97)',
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.13)',
+          border: '1px solid #e0e0e0',
+          gap: 1.5,
+        }}
+      >
+        <Fade in timeout={600}>
+          <Box sx={{ width: '100%' }}>
+            <Typography variant='h4' fontWeight={700} color="primary.main" gutterBottom>
+              Create Account
+            </Typography>
+            <Typography variant='subtitle1' color="text.secondary" gutterBottom>
+              Start your journey in your professional world
+            </Typography>
+          </Box>
+        </Fade>
 
-            <Box
-            component="form"
-            onSubmit={handleregister}
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: '1px solid black',
+        {alert.open &&
+          <Alert severity={alert.severity} sx={{ width: '100%' }}>
+            {alert.message}
+          </Alert>
+        }
 
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    marginTop: '100px',
+        <TextField
+          variant="outlined"
+          margin="dense"
+          fullWidth
+          name="username"
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          InputProps={{ sx: { borderRadius: 2 } }}
+        />
 
-                }}>
+        <TextField
+          variant="outlined"
+          margin="dense"
+          fullWidth
+          name="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          InputProps={{ sx: { borderRadius: 2 } }}
+        />
 
-                <Typography variant='h5' gutterBottom alignSelf='flex-start' fontWeight='600'>
-                    Sign in
-                </Typography>
-                <Typography variant='body2' color='textSecondary' gutterBottom alignSelf='flex-start'>
-                    Stay updated on your professional world
-                </Typography>
-                <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    name="username"
-                    label="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
+        <TextField
+          variant="outlined"
+          margin="dense"
+          fullWidth
+          name="password"
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          InputProps={{
+            sx: { borderRadius: 2 },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClickShowPassword}
+                  edge="end"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
 
-                <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    name="email"
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+        <Button
+          type='submit'
+          variant='contained'
+          sx={{
+            mt: 1,
+            borderRadius: 2,
+            height: 46,
+            fontWeight: 600,
+            fontSize: '1rem',
+            letterSpacing: 0.5,
+            boxShadow: '0 2px 8px rgba(25, 118, 210, 0.09)'
+          }}
+          disabled={loading}
+          fullWidth
+        >
+          {loading ? <CircularProgress size={24} /> : 'Sign up'}
+        </Button>
 
-                <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-
-
-                <Button type='submit' variant='contained' sx={{ marginTop: '15px', borderRadius: '12px' }} fullWidth>
-                Sign up
-                </Button>
-
-                <Link href='/' style={{ textDecoration: 'none',marginTop:'8px', padding:'5px'}}>
-                Already have an account?
-
-                </Link>
-
-
-            </Box>
-
-
-        </Container>
-    )
+        <Typography variant='body2' color="text.secondary" sx={{ mt: 2 }}>
+          Already have an account?{' '}
+          <Link href='/' style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 500 }}>
+            Sign in
+          </Link>
+        </Typography>
+      </Box>
+    </Container>
+  );
 }
 
-export default Signup
+export default register;
