@@ -35,6 +35,7 @@ function Login() {
             if (res.ok) {
                 localStorage.setItem("userId", data.user._id);
                 localStorage.setItem("name", data.user.username);
+                localStorage.setItem("email", data.user.email);
                 setSuccess(true);
                 setTimeout(() => {
                     router.push("/Todo/dashboard");

@@ -1,28 +1,29 @@
 import { AppBar, Box, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
 import MenuIcon from "@mui/icons-material/Menu";
-// import { useRouter } from "next/navigation";
-// import isAuthorised from '../../../utils/isAuthorised';
-// import LoadingPage from '../loading/page';
+import { useRouter } from "next/navigation";
+import isAuthorised from '../../../utils/isAuthorised';
+import LoadingPage from '../loading/page';
+import Link from 'next/link';
 function NavbarComponent() {
     const [anchorel, setAnchorel] = React.useState(null);
-    // const [loading, setLoading] = React.useState(true);
-    // const router = useRouter();
+    const [loading, setLoading] = React.useState(true);
+    const router = useRouter();
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const verify = isAuthorised();
-    //         if (!verify) {
-    //             router.push("/");
-    //         }
-    //         else {
-    //             setLoading(false);
-    //         }
-    //     })();
-    // }, [])
-    // if (loading) {
-    //     return <LoadingPage />
-    // }
+    useEffect(() => {
+        (async () => {
+            const verify = isAuthorised();
+            if (!verify) {
+                router.push("/");
+            }
+            else {
+                setLoading(false);
+            }
+        })();
+    }, [])
+    if (loading) {
+        return <LoadingPage />
+    }
     const handleOpen = (event) => {
         setAnchorel(event.currentTarget);
     }
@@ -54,7 +55,11 @@ function NavbarComponent() {
                     >
                         <MenuItem onClick={handleClose}>About us</MenuItem>
                         <MenuItem onClick={handleClose}>Public Privacy</MenuItem>
-                        <MenuItem onClick={handleClose}>My Profile</MenuItem>
+
+                        <MenuItem component={Link} href="/user/profile" onClick={handleClose}>
+                            My Profile
+                        </MenuItem>
+
                     </Menu>
                     {/* For DesktopL */}
                 </Box>
@@ -62,7 +67,7 @@ function NavbarComponent() {
                 <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, ml: 'auto' }}>
                     <Button color="inherit">About us</Button>
                     <Button color="inherit">Public Privacy</Button>
-                    <Button color="inherit">Profile</Button>
+                    <Button component={Link}href='/user/profile' color="inherit">Profile</Button>
                 </Box>
 
 

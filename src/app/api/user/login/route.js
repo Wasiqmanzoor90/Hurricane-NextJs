@@ -38,6 +38,7 @@ export async function POST(req) {
         message: "User Login Successfully!", token, user: {
           _id: existUser._id,
           username: existUser.username,
+          email: existUser.email,
         },
       }),
       {
